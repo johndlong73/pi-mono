@@ -19,6 +19,16 @@ import { resolveToCwd } from "./path-utils.js";
 import { invalidArgText, shortenPath, str } from "./render-utils.js";
 import { wrapToolDefinition } from "./tool-definition-wrapper.js";
 
+/**
+ * `ToolDefinition`'s third type parameter is optional **per-`renderCall` state** (e.g. to cache a diff preview while tool
+ * arguments stream in). The edit tool intentionally uses **no** such state (`Record<string, never>`).
+ *
+ * Previously, showing a growing diff preview during streaming could force **full interactive TUI redraws** on large
+ * multi-edit calls, which was slow and visually jarring. The call row now only shows the path via `formatEditCall()`;
+ * the unified diff is rendered in `renderResult()` after `execute()` completes (`formatEditResult` → `renderDiff`).
+ *
+ * Behavior change is **interactive TUI only**; execution, RPC, and extension semantics are unchanged.
+ */
 type EditRenderState = Record<string, never>;
 
 const replaceEditSchema = Type.Object(

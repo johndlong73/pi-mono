@@ -31,6 +31,13 @@ npm run check  # must pass with no errors
 
 Do not edit `CHANGELOG.md`. Changelog entries are added by maintainers.
 
+Dependency and lockfile changes should keep `npm run check` and `./test.sh` green; run `npm audit` when you touch production dependencies.
+
+## Repository notes
+
+- **`pi-mono.code-workspace`** was removed from the repo intentionally (use **File → Open Folder** on `pi-mono`, or keep a personal `.code-workspace` outside version control if you prefer a multi-root layout).
+- Tool **`prepareArguments`** for extensions is documented in [`packages/coding-agent/docs/extensions.md`](packages/coding-agent/docs/extensions.md) (argument preparation and edit-tool compatibility example).
+
 If you're adding a new provider to `packages/ai`, see `AGENTS.md` for required tests.
 
 ## Philosophy

@@ -9,6 +9,7 @@ Add custom providers and models (Ollama, vLLM, LM Studio, proxies) via `~/.pi/ag
 - [Supported APIs](#supported-apis)
 - [Provider Configuration](#provider-configuration)
 - [Model Configuration](#model-configuration)
+- [Vision and images (OpenAI-compatible providers)](#vision-and-images-openai-compatible-providers)
 - [Overriding Built-in Providers](#overriding-built-in-providers)
 - [Per-model Overrides](#per-model-overrides)
 - [OpenAI Compatibility](#openai-compatibility)
@@ -173,6 +174,15 @@ If your command is slow, expensive, rate-limited, or should keep using a previou
 Current behavior:
 - `/model` and `--list-models` list entries by model `id`.
 - The configured `name` is used for model matching and detail/status text.
+
+### Vision and images (OpenAI-compatible providers)
+
+If you use a **vision-language model (VLM)** behind an **OpenAI-compatible** Chat Completions API (`openai-completions`), configure each model in `models.json` so pi sends image content on the wire and uses context limits that match the server (otherwise images can be dropped or limits can look wrong in the UI):
+
+- Set **`"input": ["text", "image"]`**. The default is `["text"]` only; with text-only input, pi strips image content from user messages and the model never receives pixels.
+- Set **`contextWindow`** to the model’s real limit if it is **not** 128k. The default is **128000** tokens; it is used for context usage, compaction, and UI. Set `"contextWindow"` to the backend’s limit (for example `256000` when the model supports that window) so metering matches reality.
+
+**Interactive mode:** In the TUI composer, tokens like `@photo.png` are scanned. If the path resolves to an **existing image file** relative to the session working directory, pi loads it and attaches it the same way as **`pi @photo.png "your question"`** on the CLI. Paths that do not exist or are not supported images are left unchanged (you can still use the **read** tool). This applies to **images only**; `@notes.md` is not auto-inlined in interactive mode (use CLI `@file` or **read** for arbitrary files).
 
 ## Overriding Built-in Providers
 
