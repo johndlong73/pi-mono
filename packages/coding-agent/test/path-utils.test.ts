@@ -1,4 +1,4 @@
-import { mkdtempSync, readdirSync, rmdirSync, unlinkSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readdirSync, rmdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -68,6 +68,14 @@ describe("path-utils", () => {
 			writeFileSync(join(tempDir, "secret.png"), "x");
 			const result = resolveReadPath("@secret.png", tempDir);
 			expect(result).toBe(join(tempDir, "secret.png"));
+		});
+
+		it("should strip @ in a nested path segment (model echoed .../dir/@file.png)", () => {
+			const nested = join(tempDir, "Photos");
+			mkdirSync(nested, { recursive: true });
+			writeFileSync(join(nested, "img.png"), "x");
+			const result = resolveReadPath(join("Photos", "@img.png"), tempDir);
+			expect(result).toBe(join(nested, "img.png"));
 		});
 
 		it("should handle NFC vs NFD Unicode normalization (macOS filenames with accents)", () => {

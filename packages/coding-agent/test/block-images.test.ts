@@ -2,7 +2,7 @@ import { mkdirSync, rmSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { expandInlineAtImageReferences, processFileArguments } from "../src/cli/file-processor.js";
+import { processFileArguments } from "../src/cli/file-processor.js";
 import { SettingsManager } from "../src/core/settings-manager.js";
 import { createReadTool } from "../src/core/tools/read.js";
 
@@ -115,53 +115,6 @@ describe("blockImages setting", () => {
 
 			expect(result.images).toHaveLength(0);
 			expect(result.text).toContain("Hello, world!");
-		});
-	});
-
-	describe("expandInlineAtImageReferences", () => {
-		let testDir: string;
-
-		beforeEach(() => {
-			testDir = join(tmpdir(), `inline-at-test-${Date.now()}`);
-			mkdirSync(testDir, { recursive: true });
-		});
-
-		afterEach(() => {
-			rmSync(testDir, { recursive: true, force: true });
-		});
-
-		it("should attach images for @path in prose and emit file markers", async () => {
-			const imagePath = join(testDir, "secret.png");
-			writeFileSync(imagePath, Buffer.from(TINY_PNG_BASE64, "base64"));
-
-			const raw = `@secret.png What do you see?`;
-			const result = await expandInlineAtImageReferences(raw, testDir, { autoResizeImages: false });
-
-			expect(result.images).toHaveLength(1);
-			expect(result.images[0].type).toBe("image");
-			expect(result.text).toContain("<file name=");
-			expect(result.text).toContain("What do you see?");
-			expect(result.text).not.toContain("@secret.png");
-		});
-
-		it("should resolve two adjacent @ paths separately", async () => {
-			const a = join(testDir, "a.png");
-			const b = join(testDir, "b.png");
-			writeFileSync(a, Buffer.from(TINY_PNG_BASE64, "base64"));
-			writeFileSync(b, Buffer.from(TINY_PNG_BASE64, "base64"));
-
-			const raw = `@a.png@b.png`;
-			const result = await expandInlineAtImageReferences(raw, testDir, { autoResizeImages: false });
-
-			expect(result.images).toHaveLength(2);
-		});
-
-		it("should leave missing paths unchanged", async () => {
-			const raw = `@nope.png hello`;
-			const result = await expandInlineAtImageReferences(raw, testDir);
-
-			expect(result.images).toHaveLength(0);
-			expect(result.text).toBe(raw);
 		});
 	});
 });
