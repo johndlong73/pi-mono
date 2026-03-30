@@ -64,6 +64,12 @@ describe("path-utils", () => {
 			expect(result).toBe(join(tempDir, fileName));
 		});
 
+		it("should strip @ from a path segment when the model echoes @file as literal filename", () => {
+			writeFileSync(join(tempDir, "secret.png"), "x");
+			const result = resolveReadPath("@secret.png", tempDir);
+			expect(result).toBe(join(tempDir, "secret.png"));
+		});
+
 		it("should handle NFC vs NFD Unicode normalization (macOS filenames with accents)", () => {
 			// macOS stores filenames in NFD (decomposed) form:
 			//   é = e + combining acute accent (U+0301)

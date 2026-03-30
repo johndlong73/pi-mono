@@ -36,8 +36,18 @@ function normalizeAtPrefix(filePath: string): string {
 	return filePath.startsWith("@") ? filePath.slice(1) : filePath;
 }
 
+/**
+ * Strip a leading `@` from any path segment (e.g. `@secret.png` from the editor).
+ * Models sometimes echo `@file` as a literal filename like `.../Pictures/@secret.png`.
+ */
+function stripAtPrefixFromPathSegments(filePath: string): string {
+	let s = filePath.replace(/([/\\])@([^/\\]+)/g, "$1$2");
+	s = s.replace(/^@([^/\\]+)/, "$1");
+	return s;
+}
+
 export function expandPath(filePath: string): string {
-	const normalized = normalizeUnicodeSpaces(normalizeAtPrefix(filePath));
+	const normalized = normalizeUnicodeSpaces(stripAtPrefixFromPathSegments(normalizeAtPrefix(filePath)));
 	if (normalized === "~") {
 		return os.homedir();
 	}

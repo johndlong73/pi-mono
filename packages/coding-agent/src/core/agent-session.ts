@@ -25,6 +25,7 @@ import type {
 } from "@mariozechner/pi-agent-core";
 import type { AssistantMessage, ImageContent, Message, Model, TextContent } from "@mariozechner/pi-ai";
 import { isContextOverflow, modelsAreEqual, resetApiProviders, supportsXhigh } from "@mariozechner/pi-ai";
+import { expandInlineAtImageReferences } from "../cli/file-processor.js";
 import { getDocsPath } from "../config.js";
 import { theme } from "../modes/interactive/theme/theme.js";
 import { stripFrontmatter } from "../utils/frontmatter.js";
@@ -939,6 +940,13 @@ export class AgentSession {
 			}
 		}
 
+		// Resolve `@image.png` in free text to image attachments (same behavior as CLI `@file` args).
+		const inlineRefs = await expandInlineAtImageReferences(currentText, this._cwd, {
+			autoResizeImages: this.settingsManager.getImageAutoResize(),
+		});
+		currentText = inlineRefs.text;
+		currentImages = [...(currentImages ?? []), ...inlineRefs.images];
+
 		// Expand skill commands (/skill:name args) and prompt templates (/template args)
 		let expandedText = currentText;
 		if (expandPromptTemplates) {
@@ -1123,11 +1131,15 @@ export class AgentSession {
 			this._throwIfExtensionCommand(text);
 		}
 
+		const inlineRefs = await expandInlineAtImageReferences(text, this._cwd, {
+			autoResizeImages: this.settingsManager.getImageAutoResize(),
+		});
+
 		// Expand skill commands and prompt templates
-		let expandedText = this._expandSkillCommand(text);
+		let expandedText = this._expandSkillCommand(inlineRefs.text);
 		expandedText = expandPromptTemplate(expandedText, [...this.promptTemplates]);
 
-		await this._queueSteer(expandedText, images);
+		await this._queueSteer(expandedText, [...(images ?? []), ...inlineRefs.images]);
 	}
 
 	/**
@@ -1143,11 +1155,15 @@ export class AgentSession {
 			this._throwIfExtensionCommand(text);
 		}
 
+		const inlineRefs = await expandInlineAtImageReferences(text, this._cwd, {
+			autoResizeImages: this.settingsManager.getImageAutoResize(),
+		});
+
 		// Expand skill commands and prompt templates
-		let expandedText = this._expandSkillCommand(text);
+		let expandedText = this._expandSkillCommand(inlineRefs.text);
 		expandedText = expandPromptTemplate(expandedText, [...this.promptTemplates]);
 
-		await this._queueFollowUp(expandedText, images);
+		await this._queueFollowUp(expandedText, [...(images ?? []), ...inlineRefs.images]);
 	}
 
 	/**
